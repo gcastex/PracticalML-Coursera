@@ -5,10 +5,60 @@ Read the training and testing files, and split the training data into training a
 
     library(caret)
     data<-read.csv("pml-training.csv", stringsAsFactors=FALSE)
-    
     inTrain <- createDataPartition(data$classe, p=0.70, list=FALSE)
     training <- data[inTrain,]
     validation <- data[-inTrain,]
     
     testing<-read.csv("pml-testing.csv")
 
+## Formatting data
+Basic exploration of the data shows that most columns contains mainly NA values.
+The first columns contains data and time information, which should be irrelevant to the analysis.
+
+    ## EXTRACT CLASSE INFORMATION
+    data<-subset(training,  select = -c(classe))
+    ## REMOVE TIME INFORMATION
+    data<-data[,-c(1:5)]
+    ## SAVE COLUMN NAMES
+    datnames<-names(data)
+    ## CONVERT REMAINING VALUES TO NUMERIC
+    temp<-lapply(data, as.numeric)
+    data<-data.frame(matrix(unlist(temp), ncol=ncol(data)))
+    ## REMOVE COLUMNS CONTAINING NA VALUES
+    colindices<-which(colSums(is.na(data))==0)
+    data<-data[,colindices]
+    names(data)<-datnames[colindices]
+    data<-cbind(classe=training$classe, data)
+
+## Model fitting
+
+The model used is Random Forest with cross-validation. Parallelisation is also used to speed up the computation time. Cross-validation and parallelisation options ae defined using the trainControl command.
+
+    ## PARALLEL AND CROSS-VALIDATION OPTIONS
+    library(parallel)
+    library(doParallel)
+    cluster <- makeCluster(detectCores() - 1) # convention to leave 1 core for OS
+    registerDoParallel(cluster)
+    fitControl <- trainControl(method = "cv",
+                               number = 10,
+                               allowParallel = TRUE)
+    ## TRAINING  
+    modelFit<-train(classe~., method="rf", data=data, trControl=fitControl)
+    ## SAVE THE MODEL
+    save(modelFit,file="rfFit.RData")
+
+
+## Test the model on the validation dataset
+
+The validation dataset is used to predict the out-of-sample accuracy of the model. As such, we preprocess the validation dataset in the same way as the training dataset, and we apply the model to it.
+    temp<-lapply(subset(validation, select=-c(classe)), as.numeric)
+    valclasse<-validation$classe
+    valnames<-names(temp)
+    validation<-data.frame(matrix(unlist(temp), ncol=ncol(validation)-1))
+    names(validation)<-valnames
+    validation<-cbind(classe=valclasse, validation)
+
+    ## PREDICTIONS FOR VALIDATION SET 
+    valpreds<-predict(modelFit, newdata=validation)
+
+    confusionMatrix(valpreds, validation$classe)
