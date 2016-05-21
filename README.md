@@ -87,3 +87,15 @@ The confusion matrix is represented below.
 | C          |           |    0 |    0 | 1025 |    1 |    0 |
 | D          |           |    0 |    0 |    0 |  963 |    1 |
 | E          |           |    0 |    0 |    0 |    0 | 1081 |
+
+
+
+## Compute prediction on Testing dataset
+
+Finally, we apply our model to the Testing dataset after properly preprocessing it:
+    temp<-lapply(testing, as.numeric)
+    testnames<-names(temp)
+    testing<-data.frame(matrix(unlist(temp), ncol=ncol(testing)))
+    names(testing)<-testnames
+    
+    testpreds<-predict(modelFit, newdata=testing)
