@@ -181,6 +181,19 @@ The confusion matrix is represented below.</p>
 </tbody>
 </table>
 
+<h2>
+<a id="compute-prediction-on-testing-dataset" class="anchor" href="#compute-prediction-on-testing-dataset" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Compute prediction on Testing dataset</h2>
+
+<p>Finally, we apply our model to the Testing dataset after properly preprocessing it:</p>
+
+<pre><code>temp&lt;-lapply(testing, as.numeric)
+testnames&lt;-names(temp)
+testing&lt;-data.frame(matrix(unlist(temp), ncol=ncol(testing)))
+names(testing)&lt;-testnames
+
+testpreds&lt;-predict(modelFit, newdata=testing)
+</code></pre>
+
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/gcastex/PracticalML-Coursera">Practicalml-coursera</a> is maintained by <a href="https://github.com/gcastex">gcastex</a>.</span>
 
