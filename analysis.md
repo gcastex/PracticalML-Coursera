@@ -75,10 +75,11 @@ We use the command confusionMatrix to get detailed information on the model accu
 
 This gives us an estimate of the out-of sample accuracy of: 0.9993
 
-          |Reference
+|Reference
+- | --|--|--|--|--
 Prediction  |  A  |  B  |  C  |  D  |  E
-         A |1674  |  1  |  0  |  0  |  0
-         B  |  0 |1138  |  1  |  0  |  0
-         C  |  0  |  0 |1025  |  1  |  0
-         D  |  0  |  0  |  0  |963  |  1
-         E  |  0  |  0  |  0  |  0 |1081
+A |1674  |  1  |  0  |  0  |  0
+B  |  0 |1138  |  1  |  0  |  0
+C  |  0  |  0 |1025  |  1  |  0
+D  |  0  |  0  |  0  |963  |  1
+E  |  0  |  0  |  0  |  0 |1081
