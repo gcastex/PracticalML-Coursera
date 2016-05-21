@@ -57,6 +57,7 @@ The model used is Random Forest with cross-validation. Parallelisation is also u
 ## Test the model on the validation dataset
 
 The validation dataset is used to predict the out-of-sample accuracy of the model. As such, we preprocess the validation dataset in the same way as the training dataset, and we apply the model to it.
+
     temp<-lapply(subset(validation, select=-c(classe)), as.numeric)
     valclasse<-validation$classe
     valnames<-names(temp)
