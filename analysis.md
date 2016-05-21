@@ -75,6 +75,7 @@ We use the command confusionMatrix to get detailed information on the model accu
 
 This gives us an estimate of the out-of sample accuracy of: 0.9993
 Confusion matrix below.
+
 |            | Reference |    A |    B |    C |    D |    E |
 |------------|-----------|-----:|-----:|-----:|-----:|-----:|
 | Prediction |           |      |      |      |      |      |
