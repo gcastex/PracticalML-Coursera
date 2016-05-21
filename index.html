@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Practicalml-coursera by gcastex</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Practicalml-coursera</h1>
+      <h2 class="project-tagline"></h2>
+      <a href="https://github.com/gcastex/PracticalML-Coursera" class="btn">View on GitHub</a>
+      <a href="https://github.com/gcastex/PracticalML-Coursera/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/gcastex/PracticalML-Coursera/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="report-for-the-final-project-in-the-practical-machine-learning-course-on-coursera" class="anchor" href="#report-for-the-final-project-in-the-practical-machine-learning-course-on-coursera" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Report for the final project in the Practical Machine Learning Course on Coursera</h1>
+
+<h2>
+<a id="reading-the-data" class="anchor" href="#reading-the-data" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Reading the Data</h2>
+
+<p>Read the training and testing files, and split the training data into training and validation sets.</p>
+
+<pre><code>library(caret)
+data&lt;-read.csv("pml-training.csv", stringsAsFactors=FALSE)
+inTrain &lt;- createDataPartition(data$classe, p=0.70, list=FALSE)
+training &lt;- data[inTrain,]
+validation &lt;- data[-inTrain,]
+
+testing&lt;-read.csv("pml-testing.csv")
+</code></pre>
+
+<h2>
+<a id="formatting-data" class="anchor" href="#formatting-data" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Formatting data</h2>
+
+<p>Basic exploration of the data shows that most columns contains mainly NA values.
+The first columns contain date and time information, which should be irrelevant to the analysis. We remove the time columns and the columns containing NA values. 53 columns variables remain in the dataset.</p>
+
+<pre><code>## EXTRACT CLASSE INFORMATION
+data&lt;-subset(training,  select = -c(classe))
+
+## REMOVE TIME INFORMATION
+data&lt;-data[,-c(1:5)]
+
+## SAVE COLUMN NAMES
+datnames&lt;-names(data)
+
+## CONVERT REMAINING VALUES TO NUMERIC
+temp&lt;-lapply(data, as.numeric)
+data&lt;-data.frame(matrix(unlist(temp), ncol=ncol(data)))
+
+## REMOVE COLUMNS CONTAINING NA VALUES
+colindices&lt;-which(colSums(is.na(data))==0)
+data&lt;-data[,colindices]
+names(data)&lt;-datnames[colindices]
+data&lt;-cbind(classe=training$classe, data)
+</code></pre>
+
+<h2>
+<a id="model-fitting" class="anchor" href="#model-fitting" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Model fitting</h2>
+
+<p>The model used is Random Forest with cross-validation. Parallelisation is also used to speed up the computation time. Cross-validation and parallelisation options are defined using the trainControl command.</p>
+
+<pre><code>## PARALLEL AND CROSS-VALIDATION OPTIONS
+library(parallel)
+library(doParallel)
+cluster &lt;- makeCluster(detectCores() - 1) # convention to leave 1 core for OS
+registerDoParallel(cluster)
+fitControl &lt;- trainControl(method = "cv",
+                           number = 10,
+                           allowParallel = TRUE)
+
+## TRAINING  
+modelFit&lt;-train(classe~., method="rf", data=data, trControl=fitControl)
+
+## SAVE THE MODEL
+save(modelFit,file="rfFit.RData")
+</code></pre>
+
+<h2>
+<a id="test-the-model-on-the-validation-dataset" class="anchor" href="#test-the-model-on-the-validation-dataset" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Test the model on the validation dataset</h2>
+
+<p>The validation dataset is used to predict the out-of-sample accuracy of the model. As such, we preprocess the validation dataset in the same way as the training dataset by converting its values to numeric, and we apply the model to it.</p>
+
+<pre><code>## CONVERT TO NUMERIC
+temp&lt;-lapply(subset(validation, select=-c(classe)), as.numeric)
+valclasse&lt;-validation$classe
+valnames&lt;-names(temp)
+validation&lt;-data.frame(matrix(unlist(temp), ncol=ncol(validation)-1))
+names(validation)&lt;-valnames
+validation&lt;-cbind(classe=valclasse, validation)
+
+## LOAD THE MODEL (IF NOT ALREADY IN MEMORY)
+load(file = "rfFit.RData")
+
+## PREDICTIONS FOR VALIDATION SET 
+valpreds&lt;-predict(modelFit, newdata=validation)
+</code></pre>
+
+<p>We use the command confusionMatrix to get detailed information on the model accuracy on the validation set.</p>
+
+<pre><code>confusionMatrix(valpreds, validation$classe)
+</code></pre>
+
+<p>This gives us an estimate of the out-of sample accuracy of: 0.9993. 
+The confusion matrix is represented below.</p>
+
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Reference</th>
+<th align="right">A</th>
+<th align="right">B</th>
+<th align="right">C</th>
+<th align="right">D</th>
+<th align="right">E</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prediction</td>
+<td></td>
+<td align="right"></td>
+<td align="right"></td>
+<td align="right"></td>
+<td align="right"></td>
+<td align="right"></td>
+</tr>
+<tr>
+<td>A</td>
+<td></td>
+<td align="right">1674</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr>
+<td>B</td>
+<td></td>
+<td align="right">0</td>
+<td align="right">1138</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr>
+<td>C</td>
+<td></td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1025</td>
+<td align="right">1</td>
+<td align="right">0</td>
+</tr>
+<tr>
+<td>D</td>
+<td></td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">963</td>
+<td align="right">1</td>
+</tr>
+<tr>
+<td>E</td>
+<td></td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1081</td>
+</tr>
+</tbody>
+</table>
+
+<h2>
+<a id="compute-prediction-on-testing-dataset" class="anchor" href="#compute-prediction-on-testing-dataset" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Compute prediction on Testing dataset</h2>
+
+<p>Finally, we apply our model to the Testing dataset after properly preprocessing it:</p>
+
+<pre><code>temp&lt;-lapply(testing, as.numeric)
+testnames&lt;-names(temp)
+testing&lt;-data.frame(matrix(unlist(temp), ncol=ncol(testing)))
+names(testing)&lt;-testnames
+
+testpreds&lt;-predict(modelFit, newdata=testing)
+</code></pre>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/gcastex/PracticalML-Coursera">Practicalml-coursera</a> is maintained by <a href="https://github.com/gcastex">gcastex</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
