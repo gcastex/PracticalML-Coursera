@@ -71,6 +71,7 @@ The validation dataset is used to predict the out-of-sample accuracy of the mode
     valpreds<-predict(modelFit, newdata=validation)
 
 We use the command confusionMatrix to get detailed information on the model accuracy on the validation set.
+
     confusionMatrix(valpreds, validation$classe)
 
 This gives us an estimate of the out-of sample accuracy of: 0.9993
