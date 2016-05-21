@@ -93,6 +93,7 @@ The confusion matrix is represented below.
 ## Compute prediction on Testing dataset
 
 Finally, we apply our model to the Testing dataset after properly preprocessing it:
+
     temp<-lapply(testing, as.numeric)
     testnames<-names(temp)
     testing<-data.frame(matrix(unlist(temp), ncol=ncol(testing)))
