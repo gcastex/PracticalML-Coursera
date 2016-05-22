@@ -1,5 +1,17 @@
 #Report for the final project in the Practical Machine Learning Course on Coursera
 
+## Data 
+The goal of this project is to fit a classifier machine learning algorithm on fitness exercises data, in order to predict the class of test observations to check the efficiency of the model.
+
+The data used in this project is described in this source: http://groupware.les.inf.puc-rio.br/har.
+
+The training data for this project are available here:
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+The test data are available here:
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+
 ## Reading the Data
 Read the training and testing files, and split the training data into training and validation sets.
 
